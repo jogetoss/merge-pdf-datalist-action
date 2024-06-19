@@ -2,6 +2,9 @@
 
 This plugin merges uploaded PDF in file upload form element when user clicks on merge button in datalist.
 
+To setup and configure this plugin, please see the [documentation](https://dev.joget.org/community/display/SANDBOX2/Merge+PDF+Datalist+Action).
+
+
 # Getting Help
 
 JogetOSS is a community-led team for open source software related to the [Joget](https://www.joget.org) no-code/low-code application platform.
