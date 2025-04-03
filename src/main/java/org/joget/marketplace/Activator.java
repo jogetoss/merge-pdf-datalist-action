@@ -15,6 +15,8 @@ public class Activator implements BundleActivator {
 
         //Register plugin here
         registrationList.add(context.registerService(MergePdfDatalistAction.class.getName(), new MergePdfDatalistAction(), null));
+            registrationList.add(context.registerService(MergePDFTool.class.getName(), new MergePDFTool(), null));
+
     }
 
     public void stop(BundleContext context) {
