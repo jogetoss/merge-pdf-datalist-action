@@ -35,12 +35,11 @@ import org.joget.commons.util.StringUtil;
 import org.joget.workflow.model.WorkflowAssignment;
 import org.joget.workflow.util.WorkflowUtil;
 import org.springframework.context.ApplicationContext;
-import org.apache.pdfbox.multipdf.PDFMergerUtility; 
-import java.io.File; 
-
+import org.apache.pdfbox.multipdf.PDFMergerUtility;
+import java.io.File;
 
 public class MergePdfDatalistAction extends DataListActionDefault {
-    
+
     private final static String MESSAGE_PATH = "messages/MergePdfDatalistAction";
 
     @Override
@@ -50,20 +49,20 @@ public class MergePdfDatalistAction extends DataListActionDefault {
 
     @Override
     public String getVersion() {
-        return "8.0.0";
+        return Activator.VERSION;
     }
-    
+
     @Override
     public String getClassName() {
         return getClass().getName();
     }
-    
+
     @Override
     public String getLabel() {
         //support i18n
         return AppPluginUtil.getMessage("org.joget.marketplace.MergePdfDatalistAction.pluginLabel", getClassName(), MESSAGE_PATH);
     }
-    
+
     @Override
     public String getDescription() {
         //support i18n
@@ -117,7 +116,7 @@ public class MergePdfDatalistAction extends DataListActionDefault {
         if (request != null && !"POST".equalsIgnoreCase(request.getMethod())) {
             return null;
         }
-        
+
         // check for submited rows
         if (rowKeys != null && rowKeys.length > 0) {
             try {
@@ -135,11 +134,10 @@ public class MergePdfDatalistAction extends DataListActionDefault {
                 LogUtil.error(getClassName(), e, "Fail to generate PDF for " + ArrayUtils.toString(rowKeys));
             }
         }
-        
+
         //return null to do nothing
         return null;
     }
-    
 
     public String getFileNameFromConfig(String id, String configFileName) {
         AppService appService = (AppService) FormUtil.getApplicationContext().getBean("appService");
@@ -155,34 +153,36 @@ public class MergePdfDatalistAction extends DataListActionDefault {
 
     /**
      * Handles for single pdf file
+     *
      * @param request
      * @param response
      * @param rowKey
-     * @throws IOException 
-     * @throws javax.servlet.ServletException 
+     * @throws IOException
+     * @throws javax.servlet.ServletException
      */
     protected void singlePdf(HttpServletRequest request, HttpServletResponse response, String rowKey) throws IOException, ServletException {
         byte[] pdf = getPdf(rowKey);
         if (!getPropertyString("fileName").isEmpty()) {
-            writeResponse(request, response, pdf, getFileNameFromConfig(rowKey, getPropertyString("fileName"))+".pdf", "application/pdf");
+            writeResponse(request, response, pdf, getFileNameFromConfig(rowKey, getPropertyString("fileName")) + ".pdf", "application/pdf");
         } else {
-            writeResponse(request, response, pdf, rowKey+".pdf", "application/pdf");
+            writeResponse(request, response, pdf, rowKey + ".pdf", "application/pdf");
         }
     }
-    
+
     /**
      * Handles for multiple files download. Put all pdfs in zip.
+     *
      * @param request
      * @param response
-     * @param rowKeys 
-     * @throws java.io.IOException 
-     * @throws javax.servlet.ServletException 
+     * @param rowKeys
+     * @throws java.io.IOException
+     * @throws javax.servlet.ServletException
      */
     protected void multiplePdfs(HttpServletRequest request, HttpServletResponse response, String[] rowKeys) throws IOException, ServletException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         ZipOutputStream zip = new ZipOutputStream(baos);
         Map<String, Integer> fileNameCounts = new HashMap<>();
-        
+
         try {
             //create pdf and put in zip
             for (String id : rowKeys) {
@@ -194,21 +194,21 @@ public class MergePdfDatalistAction extends DataListActionDefault {
                 } else {
                     fileName = id + ".pdf";
                 }
-                
+
                 // Check if the filename already exists in the zip
                 if (fileNameCounts.containsKey(fileName)) {
                     int count = fileNameCounts.get(fileName);
                     count++;
                     fileNameCounts.put(fileName, count);
-                    
+
                     String baseFileName = fileName.substring(0, fileName.lastIndexOf('.'));
                     String fileExtension = fileName.substring(fileName.lastIndexOf('.'));
-                    
+
                     fileName = baseFileName + " (" + count + ")" + fileExtension;
                 } else {
                     fileNameCounts.put(fileName, 0);
                 }
-                
+
                 zip.putNextEntry(new ZipEntry(fileName));
                 zip.write(pdf);
                 zip.closeEntry();
@@ -216,20 +216,21 @@ public class MergePdfDatalistAction extends DataListActionDefault {
 
             zip.finish();
             if (!getPropertyString("zipFileName").isEmpty()) {
-                writeResponse(request, response, baos.toByteArray(), getPropertyString("zipFileName") +".zip", "application/zip");
+                writeResponse(request, response, baos.toByteArray(), getPropertyString("zipFileName") + ".zip", "application/zip");
             } else {
-                writeResponse(request, response, baos.toByteArray(), getLinkLabel() +".zip", "application/zip");
+                writeResponse(request, response, baos.toByteArray(), getLinkLabel() + ".zip", "application/zip");
             }
         } finally {
             baos.close();
             zip.flush();
         }
     }
-    
+
     /**
      * Generate PDF using FormPdfUtil
+     *
      * @param id
-     * @return 
+     * @return
      */
     protected byte[] getPdf(String id) {
         AppDefinition appDef = AppUtil.getCurrentAppDefinition();
@@ -240,7 +241,7 @@ public class MergePdfDatalistAction extends DataListActionDefault {
         if (getPropertyString("hideEmptyValueField").equals("true")) {
             hideEmptyValueField = true;
         }
-        
+
         Boolean showNotSelectedOptions = false;
         if (getPropertyString("showNotSelectedOptions").equals("true")) {
             showNotSelectedOptions = true;
@@ -250,25 +251,25 @@ public class MergePdfDatalistAction extends DataListActionDefault {
             repeatHeader = true;
         }
         Boolean repeatFooter = null;
-        if ("true".equals(getPropertyString("repeatFooter"))) {    
+        if ("true".equals(getPropertyString("repeatFooter"))) {
             repeatFooter = true;
         }
         String css = null;
         if (!getPropertyString("formatting").isEmpty()) {
             css = getPropertyString("formatting");
         }
-        String header = null; 
+        String header = null;
         if (!getPropertyString("headerHtml").isEmpty()) {
             header = getPropertyString("headerHtml");
             header = AppUtil.processHashVariable(header, null, null, null);
         }
 
-        String footer = null; 
+        String footer = null;
         if (!getPropertyString("footerHtml").isEmpty()) {
             footer = getPropertyString("footerHtml");
             footer = AppUtil.processHashVariable(footer, null, null, null);
         }
-        
+
         return createPdf(fieldId, formDefId, id, appDef, null, hideEmptyValueField, header, footer, css, showNotSelectedOptions, repeatHeader, repeatFooter);
     }
 
@@ -285,31 +286,25 @@ public class MergePdfDatalistAction extends DataListActionDefault {
 
             List<String> filePathList = getFilesList(filePaths);
             List<File> fileList = convertPathsToFiles(filePathList);
-   
+
             return mergePdf(fileList, filePaths);
-            
 
         } catch (Exception ex) {
             LogUtil.error(getClassName(), ex, ex.getMessage());
         }
         return null;
-       
+
         // try {
         //     String html = getSelectedFormHtml(formId, primaryKey, appDef, assignment, hideEmpty);
-
         //     header = AppUtil.processHashVariable(header, assignment, null, null);
         //     footer = AppUtil.processHashVariable(footer, assignment, null, null);
-          
         //     html = cleanFormHtml(html, showAllSelectOptions);
-            
         //     return FormPdfUtil.createPdf(html, header, footer, css, showAllSelectOptions, repeatHeader, repeatFooter, true);
         // } catch (Exception e) {
         //     LogUtil.error(FormPdfUtil.class.getName(), e, "");
         // }
         // return null;
     }
-
-   
 
     public List<String> getFilesList(String filePaths) {
         String[] fileArray = filePaths.split(";");
@@ -339,10 +334,10 @@ public class MergePdfDatalistAction extends DataListActionDefault {
         }
         return fileList;
     }
-    
-    public byte[] mergePdf(List<File> fileList, String filePaths){
 
-        try{
+    public byte[] mergePdf(List<File> fileList, String filePaths) {
+
+        try {
             // Path to the output merged PDF file
             String outputFilePath = "path/to/output/merged-file.pdf";
 
@@ -357,7 +352,7 @@ public class MergePdfDatalistAction extends DataListActionDefault {
                 pdfMerger.addSource(file);
             }
 
-             // Create a ByteArrayOutputStream to hold the merged PDF
+            // Create a ByteArrayOutputStream to hold the merged PDF
             try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
                 // Set the destination to the ByteArrayOutputStream
                 pdfMerger.setDestinationStream(outputStream);
@@ -369,7 +364,6 @@ public class MergePdfDatalistAction extends DataListActionDefault {
                 return outputStream.toByteArray();
             }
 
-          
             // Merge the documents
             // pdfMerger.mergeDocuments(null);
             // LogUtil.info(getClassName(), "PDF files merged successfully into " + outputFilePath);
@@ -381,20 +375,21 @@ public class MergePdfDatalistAction extends DataListActionDefault {
 
     /**
      * Write to response for download
+     *
      * @param request
      * @param response
      * @param bytes
      * @param filename
      * @param contentType
-     * @throws IOException 
+     * @throws IOException
      */
     protected void writeResponse(HttpServletRequest request, HttpServletResponse response, byte[] bytes, String filename, String contentType) throws IOException, ServletException {
         OutputStream out = response.getOutputStream();
         try {
             String name = URLEncoder.encode(filename, "UTF8").replaceAll("\\+", "%20");
-            response.setHeader("Content-Disposition", "attachment; filename="+name+"; filename*=UTF-8''" + name);
-            response.setContentType(contentType+"; charset=UTF-8");
-            
+            response.setHeader("Content-Disposition", "attachment; filename=" + name + "; filename*=UTF-8''" + name);
+            response.setContentType(contentType + "; charset=UTF-8");
+
             if (bytes.length > 0) {
                 response.setContentLength(bytes.length);
                 out.write(bytes);
@@ -402,27 +397,27 @@ public class MergePdfDatalistAction extends DataListActionDefault {
         } finally {
             out.flush();
             out.close();
-            
+
             //simply foward to a 
             request.getRequestDispatcher(filename).forward(request, response);
         }
     }
-    
+
     public static String cleanFormHtml(String html, Boolean showAllSelectOptions) {
-        
-         //remove script
+
+        //remove script
         html = html.replaceAll("(?s)<script[^>]*>.*?</script>", "");
 
         //remove style
         html = html.replaceAll("(?s)<style[^>]*>.*?</style>", "");
-        
+
         //remove hidden field
         html = html.replaceAll("<input[^>]*type=\"hidden\"[^>]*>", "");
         html = html.replaceAll("<input[^>]*type=\'hidden\'[^>]*>", "");
-        
+
         //remove <br>
         html = html.replaceAll("<br>", "<br/>");
-        
+
         //remove form tag
         html = html.replaceAll("<form[^>]*>", "");
         html = html.replaceAll("</\\s?form>", "");
@@ -438,10 +433,10 @@ public class MergePdfDatalistAction extends DataListActionDefault {
 
         //remove id
         html = html.replaceAll("id=\"([^\\\"]*)\"", "");
-        
+
         //remove hidden td
         html = html.replaceAll("<td\\s?style=\\\"[^\\\"]*display:none;[^\\\"]?\\\"[^>]*>.*?</\\s?td>", "");
-        
+
         //convert label for checkbox and radio
         Pattern formdiv = Pattern.compile("<div class=\"form-cell-value\" >.*?</div>", Pattern.DOTALL);
         Matcher divMatcher = formdiv.matcher(html);

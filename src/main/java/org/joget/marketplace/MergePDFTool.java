@@ -219,7 +219,7 @@ public class MergePDFTool extends DefaultApplicationPlugin {
 
     @Override
     public String getName() {
-        return "Merge PDF Tool (Multi-Field, Save Mode)";
+        return "Merge PDF Tool";
     }
 
     @Override
@@ -229,7 +229,7 @@ public class MergePDFTool extends DefaultApplicationPlugin {
 
     @Override
     public String getVersion() {
-        return "8.0.1";
+        return Activator.VERSION;
     }
 
     @Override

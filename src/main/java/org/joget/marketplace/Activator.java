@@ -8,6 +8,7 @@ import org.osgi.framework.ServiceRegistration;
 
 public class Activator implements BundleActivator {
 
+    public final static String VERSION = "8.0.2";
     protected Collection<ServiceRegistration> registrationList;
 
     public void start(BundleContext context) {
@@ -15,7 +16,7 @@ public class Activator implements BundleActivator {
 
         //Register plugin here
         registrationList.add(context.registerService(MergePdfDatalistAction.class.getName(), new MergePdfDatalistAction(), null));
-            registrationList.add(context.registerService(MergePDFTool.class.getName(), new MergePDFTool(), null));
+        registrationList.add(context.registerService(MergePDFTool.class.getName(), new MergePDFTool(), null));
 
     }
 
