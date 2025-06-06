@@ -1,51 +1,58 @@
 [
-  {
-    "title": "@@org.joget.marketplace.MergePdfTool.config@@",
-    "properties": [
-      {
-        "label": "@@org.joget.marketplace.MergePdfTool.sourceFile@@",
-        "type": "header"
-      },
-      {
-        "name": "formDefId",
-        "label": "@@org.joget.marketplace.MergePdfTool.formDefId@@",
-        "type": "selectbox",
-        "required": "True",
-        "options_ajax": "[CONTEXT_PATH]/web/json/console/app[APP_PATH]/forms/options"
-      },
-      {
-        "name": "fields",
-        "label": "@@org.joget.marketplace.MergePdfTool.fields@@",
-        "type": "grid",
-        "columns": [
-          {
-            "key": "field",
-            "label": "@@org.joget.marketplace.MergePdfTool.fieldId@@",
-            "options_ajax_on_change": "formDefId",
-            "options_ajax": "[CONTEXT_PATH]/web/json/console/app[APP_PATH]/form/columns/options"
-          }
+    {
+        "title": "@@org.joget.marketplace.MergePdfTool.config@@",
+        "properties": [
+            {
+                "label": "@@org.joget.marketplace.MergePdfTool.sourceFile@@",
+                "type": "header"
+            },
+            {
+                "name": "formDefId",
+                "label": "@@org.joget.marketplace.MergePdfTool.formDefId@@",
+                "type": "selectbox",
+                "required": "True",
+                "options_ajax": "[CONTEXT_PATH]/web/json/console/app[APP_PATH]/forms/options"
+            },
+            {
+                "name": "fields",
+                "label": "@@org.joget.marketplace.MergePdfTool.fields@@",
+                "type": "grid",
+                "columns": [
+                    {
+                        "key": "field",
+                        "label": "@@org.joget.marketplace.MergePdfTool.fieldId@@",
+                        "options_ajax_on_change": "formDefId",
+                        "options_ajax": "[CONTEXT_PATH]/web/json/console/app[APP_PATH]/form/columns/options"
+                    }
+                ]
+            },
+
+            {
+                "label": "@@org.joget.marketplace.MergePdfTool.outputFile@@",
+                "type": "header"
+            },
+            {
+                "name": "formDefIdOutputFile",
+                "label": "@@org.joget.marketplace.MergePdfTool.formDefId@@",
+                "type": "selectbox",
+                "required": "True",
+                "options_ajax": "[CONTEXT_PATH]/web/json/console/app[APP_PATH]/forms/options"
+            },
+            {
+                "name": "outputFileFieldId",
+                "label": "@@org.joget.marketplace.MergePdfTool.fieldId@@",
+                "type": "selectbox",
+                "options_ajax_on_change": "formDefId:formDefIdOutputFile",
+                "options_ajax": "[CONTEXT_PATH]/web/json/console/app[APP_PATH]/form/columns/options",
+                "required": "True"
+            },
+            {
+                "name": "renameFile",
+                "label": "@@org.joget.marketplace.MergePdfTool.renameFile@@",
+                "description": "@@org.joget.marketplace.MergePdfTool.renameFileDesc@@",
+                "type": "textfield",
+                "value": ""
+            }
         ]
-      },
-      
-      {
-        "label": "@@org.joget.marketplace.MergePdfTool.outputFile@@",
-        "type": "header"
-      },
-      {
-        "name": "formDefIdOutputFile",
-        "label": "@@org.joget.marketplace.MergePdfTool.formDefId@@",
-        "type": "selectbox",
-        "required": "True",
-        "options_ajax": "[CONTEXT_PATH]/web/json/console/app[APP_PATH]/forms/options"
-      },
-      {
-        "name": "outputFileFieldId",
-        "label": "@@org.joget.marketplace.MergePdfTool.fieldId@@",
-        "type": "selectbox",
-        "options_ajax_on_change": "formDefId:formDefIdOutputFile",
-        "options_ajax": "[CONTEXT_PATH]/web/json/console/app[APP_PATH]/form/columns/options",
-        "required": "True"
-      }
-    ]
-  }
+    }
 ]

@@ -186,6 +186,121 @@ public class MergePDFTool extends DefaultApplicationPlugin {
         return null;
     }
 
+    private String generateFilename(String recordId, AppDefinition appDef,
+            AppService appService, String formDefId) {
+        String renameFile = getPropertyString("renameFile");
+        String fileName;
+
+        if (renameFile != null && !renameFile.trim().isEmpty()) {
+            if (renameFile.contains("{")) {
+                fileName = resolveDynamicFilename(renameFile, recordId, appDef, appService, formDefId);
+            } else {
+                fileName = renameFile.trim();
+            }
+        } else {
+            fileName = "merged_" + System.currentTimeMillis();
+        }
+        if (!fileName.toLowerCase().endsWith(".pdf")) {
+            fileName += ".pdf";
+        }
+
+        return fileName;
+    }
+
+    private String resolveDynamicFilename(String pattern, String recordId, AppDefinition appDef,
+            AppService appService, String formDefId) {
+        String resolvedName = pattern;
+
+        try {
+            FormRowSet rowSet = appService.loadFormData(
+                    appDef.getAppId(),
+                    String.valueOf(appDef.getVersion()),
+                    formDefId,
+                    recordId
+            );
+
+            if (rowSet != null && !rowSet.isEmpty()) {
+                FormRow row = rowSet.get(0);
+
+                java.util.regex.Pattern placeholderPattern = java.util.regex.Pattern.compile("\\{([^}]+)\\}");
+                java.util.regex.Matcher matcher = placeholderPattern.matcher(pattern);
+
+                while (matcher.find()) {
+                    String fieldName = matcher.group(1); 
+                    String fieldValue = getFieldValue(row, fieldName, recordId);
+
+                    if (fieldValue != null && !fieldValue.isEmpty()) {
+                        resolvedName = resolvedName.replace("{" + fieldName + "}", sanitizeFilename(fieldValue));
+                    } else {
+                        resolvedName = resolvedName.replace("{" + fieldName + "}", recordId);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            LogUtil.error(getClassName(), e, "Error resolving dynamic filename, using pattern as-is");
+            return pattern;
+        }
+
+        return resolvedName;
+    }
+
+    private String getFieldValue(FormRow row, String fieldName, String recordId) {
+        String fieldValue = row.getProperty(fieldName);
+
+        if (fieldValue != null && !fieldValue.isEmpty()) {
+            if (fieldValue.contains("/") || fieldValue.contains("\\") || fieldValue.endsWith(".pdf")) {
+                return extractFilenameFromUpload(fieldValue);
+            } else {
+                return fieldValue;
+            }
+        }
+
+        return null;
+    }
+
+    private String extractFilenameFromUpload(String uploadValue) {
+        if (uploadValue == null || uploadValue.isEmpty()) {
+            return null;
+        }
+
+        String[] files = uploadValue.split(";");
+        if (files.length > 0) {
+            String firstFile = files[0].trim();
+
+            String filename = firstFile;
+            if (firstFile.contains("/")) {
+                filename = firstFile.substring(firstFile.lastIndexOf("/") + 1);
+            }
+            if (filename.contains("\\")) {
+                filename = filename.substring(filename.lastIndexOf("\\") + 1);
+            }
+
+            if (filename.toLowerCase().endsWith(".pdf")) {
+                filename = filename.substring(0, filename.length() - 4);
+            }
+
+            return filename;
+        }
+
+        return null;
+    }
+
+    private String sanitizeFilename(String filename) {
+        if (filename == null) {
+            return "";
+        }
+        if (filename.toLowerCase().endsWith(".pdf")) {
+            filename = filename.substring(0, filename.length() - 4);
+        }
+
+        String sanitized = filename.replaceAll("[<>:\"/\\|?*]", "_");
+        if (sanitized.length() > 100) {
+            sanitized = sanitized.substring(0, 100);
+        }
+
+        return sanitized;
+    }
+
     private void saveMergedPdf(byte[] mergedPdfBytes, String formDefIdOutputFile,
             String outputFileFieldId, String recordId,
             AppDefinition appDef, AppService appService) {
@@ -198,7 +313,8 @@ public class MergePDFTool extends DefaultApplicationPlugin {
             String tableName = appService.getFormTableName(appDef, formDefIdOutputFile);
             String uploadPath = FileUtil.getUploadPath(tableName, recordId);
 
-            String fileName = "merged_" + System.currentTimeMillis() + ".pdf";
+            // Generate filename based on renameFile field
+            String fileName = generateFilename(recordId, appDef, appService, formDefIdOutputFile);
 
             File outputFile = new File(uploadPath, fileName);
             outputFile.getParentFile().mkdirs();
