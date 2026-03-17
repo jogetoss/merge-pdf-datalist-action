@@ -1,6 +1,10 @@
 # Description
 
-This plugin merges uploaded PDF in file upload form element when user clicks on merge button in datalist.
+This plugin merges uploaded PDF in file upload form element when user clicks on merge button in datalist, or also as a process tool.
+
+Plugins available in the bundle:
+- Merge PDF Datalist Action
+- Merge PDF Tool
 
 To setup and configure this plugin, please see the [documentation](https://dev.joget.org/community/display/marketplace/Merge+PDF+Datalist+Action).
 

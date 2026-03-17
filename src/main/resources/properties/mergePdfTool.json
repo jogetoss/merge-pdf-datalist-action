@@ -26,7 +26,12 @@
                     }
                 ]
             },
-
+            {
+                "name" : "sourceFileRecordId",
+                "label" : "@@org.joget.marketplace.MergePdfTool.recordId@@",
+                "type" : "textfield",
+                "description" : "@@org.joget.marketplace.MergePdfTool.recordId.desc@@"
+            },
             {
                 "label": "@@org.joget.marketplace.MergePdfTool.outputFile@@",
                 "type": "header"
@@ -45,6 +50,12 @@
                 "options_ajax_on_change": "formDefId:formDefIdOutputFile",
                 "options_ajax": "[CONTEXT_PATH]/web/json/console/app[APP_PATH]/form/columns/options",
                 "required": "True"
+            },
+            {
+                "name" : "outputFileRecordId",
+                "label" : "@@org.joget.marketplace.MergePdfTool.recordId@@",
+                "type" : "textfield",
+                "description" : "@@org.joget.marketplace.MergePdfTool.recordId.desc@@"
             },
             {
                 "name": "renameFile",

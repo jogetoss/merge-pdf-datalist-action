@@ -37,6 +37,8 @@ public class MergePDFTool extends DefaultApplicationPlugin {
         String sourceFormDefId = getPropertyString("formDefId");
         String outputFormDefId = getPropertyString("formDefIdOutputFile");
         String outputFileFieldId = getPropertyString("outputFileFieldId");
+        String sourceFileRecordId = getPropertyString("sourceFileRecordId");
+        String outputFileRecordId = getPropertyString("outputFileRecordId");
 
         // Read the list of PDF fields from the "fields" grid
         Object[] fieldsArray = (Object[]) map.get("fields");
@@ -53,14 +55,16 @@ public class MergePDFTool extends DefaultApplicationPlugin {
             }
         }
 
-        String recordId;
-
         WorkflowAssignment wfAssignment = (WorkflowAssignment) map.get("workflowAssignment");
         if (wfAssignment != null) {
-            recordId = appService.getOriginProcessId(wfAssignment.getProcessId());
-        } else {
-            recordId = (String) properties.get("recordId");
+            if (sourceFileRecordId != null && sourceFileRecordId.equals("")) {
+                sourceFileRecordId = appService.getOriginProcessId(wfAssignment.getProcessId());
+            }
+            if (outputFileRecordId != null && outputFileRecordId.equals("")) {
+                outputFileRecordId = appService.getOriginProcessId(wfAssignment.getProcessId());
+            }
         }
+
         // Check minimal configuration
         if (sourceFormDefId == null || sourceFormDefId.trim().isEmpty()) {
             LogUtil.warn(getClassName(), "Missing config: formDefId is not set. Exiting plugin.");
@@ -74,7 +78,7 @@ public class MergePDFTool extends DefaultApplicationPlugin {
         try {
             // 1) Load the source form for the record
             FormData formData = new FormData();
-            formData.setPrimaryKeyValue(recordId);
+            formData.setPrimaryKeyValue(sourceFileRecordId);
             Form sourceForm = appService.viewDataForm(
                     appDef.getId(),
                     String.valueOf(appDef.getVersion()),
@@ -95,7 +99,7 @@ public class MergePDFTool extends DefaultApplicationPlugin {
             }
 
             // 3) Convert string paths to actual File objects
-            List<File> pdfFiles = convertPathsToFiles(allPdfPaths, sourceForm, recordId);
+            List<File> pdfFiles = convertPathsToFiles(allPdfPaths, sourceForm, sourceFileRecordId);
             if (pdfFiles.isEmpty()) {
                 LogUtil.warn(getClassName(), "No valid PDF files to merge.");
                 return null;
@@ -109,7 +113,7 @@ public class MergePDFTool extends DefaultApplicationPlugin {
             }
 
             // 5) Save the merged PDF file into the output form & field
-            saveMergedPdf(mergedPdfBytes, outputFormDefId, outputFileFieldId, recordId, appDef, appService);
+            saveMergedPdf(mergedPdfBytes, outputFormDefId, outputFileFieldId, outputFileRecordId, appDef, appService);
 
         } catch (Exception ex) {
             LogUtil.error(getClassName(), ex, "Error merging and saving PDFs in MergePDFTool.");
